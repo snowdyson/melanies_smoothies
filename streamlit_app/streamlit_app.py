@@ -21,9 +21,15 @@ if name_on_order: # 名前が入力された場合のみ、確認のために表
 cnx = st.connection("snowflake")
 session = cnx.session()
 
-# FRUIT_OPTIONSテーブルからFRUIT_NAME列を取得し、リストに変換
-fruit_options_df = session.table("smoothies.public.fruit_options").select(col("FRUIT_NAME"))
-fruit_list_for_multiselect = [row["FRUIT_NAME"] for row in fruit_options_df.collect()]
+# --- ▼▼▼ データ取得部分を修正 ▼▼▼ ---
+# FRUIT_OPTIONSテーブルからFRUIT_NAMEとSEARCH_ON列を取得
+my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'), col('SEARCH_ON'))
+# SnowparkデータフレームをPandasデータフレームに変換
+pd_df = my_dataframe.to_pandas()
+# マルチセレクトウィジェット用のリストを作成
+fruit_list_for_multiselect = [row["FRUIT_NAME"] for row in my_dataframe.collect()]
+# --- ▲▲▲ データ取得部分の修正ここまで ▲▲▲ ---
+
 
 # 材料を選択するマルチセレクトウィジェット
 ingredients_list = st.multiselect(
@@ -33,25 +39,29 @@ ingredients_list = st.multiselect(
     max_selections=5
 )
 
-# 材料が選択された場合のみ処理を実行 (このif文が重要です)
+# 材料が選択された場合のみ処理を実行
 if ingredients_list:
-    # 変数を初期化 (NameErrorの修正)
     ingredients_string = ''
 
     # 選択されたフルーツごとに処理をループ
     for fruit_chosen in ingredients_list:
         ingredients_string += fruit_chosen + " "
         
-        # 見出しを追加
+        # --- ▼▼▼ forループ内を修正 ▼▼▼ ---
         st.subheader(fruit_chosen + ' Nutrition Information')
         
-        # fruit_chosen変数を使ってURLを動的に生成
-        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + fruit_chosen)
+        # pd_dfから、FRUIT_NAMEに一致する行を探し、SEARCH_ON列の値を取得
+        search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
+        # st.write('The search value for ', fruit_chosen,' is ', search_on, '.') # デバッグ用の表示
+        
+        # API呼び出しに、取得したsearch_on変数を使用
+        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + search_on)
         
         # データを表示
         st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
+        # --- ▲▲▲ forループ内の修正ここまで ▲▲▲ ---
 
-    # forループの外で、注文情報を一度だけ表示 (インデントの修正)
+    # forループの外で、注文情報を一度だけ表示
     ingredients_string = ingredients_string.strip()
     st.write("You are about to order:", ingredients_string)
 
