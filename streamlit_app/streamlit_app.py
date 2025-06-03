@@ -47,28 +47,24 @@ if ingredients_list:
     for fruit_chosen in ingredients_list:
         ingredients_string += fruit_chosen + " "
         
-        # --- ▼▼▼ forループ内を修正 ▼▼▼ ---
+        # (見出しやAPI呼び出しのコードは省略)
         st.subheader(fruit_chosen + ' Nutrition Information')
-        
-        # pd_dfから、FRUIT_NAMEに一致する行を探し、SEARCH_ON列の値を取得
         search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
-        # st.write('The search value for ', fruit_chosen,' is ', search_on, '.') # デバッグ用の表示
-        
-        # API呼び出しに、取得したsearch_on変数を使用
         smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + search_on)
-        
-        # データを表示
         st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
-        # --- ▲▲▲ forループ内の修正ここまで ▲▲▲ ---
 
-    # forループの外で、注文情報を一度だけ表示
+    # --- ▼▼▼【重要】ここが解決のポイントです ▼▼▼ ---
+    # forループの外で、文字列の最後についた余分な空白を削除します
     ingredients_string = ingredients_string.strip()
+
+    # 注文内容を表示（この時点では空白が削除されています）
     st.write("You are about to order:", ingredients_string)
 
     # 送信ボタン
     submit_button = st.button("Submit Order")
 
     if submit_button:
+        # 空白が削除された「ingredients_string」がDBに保存されます
         my_insert_stmt = f"""
         insert into smoothies.public.orders(ingredients, name_on_order) 
         values ('{ingredients_string}', '{name_on_order}')
@@ -76,6 +72,7 @@ if ingredients_list:
         
         session.sql(my_insert_stmt).collect()
         st.success(f'Smoothie for "{name_on_order}" with "{ingredients_string}" ordered!', icon="✅")
+# (else以降は省略)
 
 # 材料が選択されていない場合に表示するメッセージ
 else:
