@@ -25,7 +25,7 @@ session = cnx.session()
 my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'), col('SEARCH_ON'))
 pd_df = my_dataframe.to_pandas()
 # マルチセレクトウィジェット用のリストを作成
-fruit_list_for_multiselect = [row["FRUIT_NAME"] for row in my_dataframe.collect()]
+fruit_list_for_multiselect = [row["SEARCH_ON"] for row in my_dataframe.collect()]
 
 # 材料を選択するマルチセレクトウィジェット
 ingredients_list = st.multiselect(
