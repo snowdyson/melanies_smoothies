@@ -1,6 +1,5 @@
 # Import python packages
 import streamlit as st
-from snowflake.snowpark.context import get_active_session
 from snowflake.snowpark.functions import col # import文を上部に移動
 
 # アプリのタイトルと説明
@@ -17,7 +16,8 @@ if name_on_order: # 名前が入力された場合のみ、確認のために表
     st.write('The name on your Smoothie will be:', name_on_order)
 
 # 現在のSnowflakeセッションを取得
-session = get_active_session()
+cnx = st.connection("snowflake")
+session = cnx.session()
 
 # FRUIT_OPTIONSテーブルからFRUIT_NAME列を取得し、リストに変換
 fruit_options_df = session.table("smoothies.public.fruit_options").select(col("FRUIT_NAME"))
