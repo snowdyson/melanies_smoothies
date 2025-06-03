@@ -1,7 +1,7 @@
 # Import python packages
 import streamlit as st
 from snowflake.snowpark.functions import col
-import requests # <-- 末尾からここに移動しました
+import requests
 
 # アプリのタイトルと説明
 st.title(":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
@@ -32,21 +32,26 @@ ingredients_list = st.multiselect(
     max_selections=5
 )
 
-for fruit_chosen in ingredients_list:
-    ingredients_string += fruit_chosen + " "
-    
-    # 見出しを追加
-    st.subheader(fruit_chosen + ' Nutrition Information')
-    
-    # fruit_chosen変数を使ってURLを動的に生成
-    smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + fruit_chosen)
-    
-    # データを表示
-    sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
-        # --- ここまで ---
+# 材料が選択された場合のみ処理を実行 (このif文が重要です)
+if ingredients_list:
+    # 変数を初期化 (NameErrorの修正)
+    ingredients_string = ''
 
+    # 選択されたフルーツごとに処理をループ
+    for fruit_chosen in ingredients_list:
+        ingredients_string += fruit_chosen + " "
+        
+        # 見出しを追加
+        st.subheader(fruit_chosen + ' Nutrition Information')
+        
+        # fruit_chosen変数を使ってURLを動的に生成
+        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + fruit_chosen)
+        
+        # データを表示
+        st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
+
+    # forループの外で、注文情報を一度だけ表示 (インデントの修正)
     ingredients_string = ingredients_string.strip()
-
     st.write("You are about to order:", ingredients_string)
 
     # 送信ボタン
@@ -60,6 +65,7 @@ for fruit_chosen in ingredients_list:
         
         session.sql(my_insert_stmt).collect()
         st.success(f'Smoothie for "{name_on_order}" with "{ingredients_string}" ordered!', icon="✅")
+
+# 材料が選択されていない場合に表示するメッセージ
 else:
-    # 材料が選択されていない場合に表示するメッセージ
     st.write("Please choose your ingredients to make a smoothie!")
