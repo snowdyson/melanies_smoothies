@@ -59,9 +59,15 @@ else:
     st.write("Please choose your ingredients to make a smoothie!")
 
 
+# New section to display smoothiefroot nutrition information
 import requests
 smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
-st.text(smoothiefroot_response.json())
+
+# この行をコメントアウト（または削除）
+# st.text(smoothiefroot_response.json())
+
+# この行を新しく追加
+sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
 
 
 
