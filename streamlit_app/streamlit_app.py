@@ -32,17 +32,17 @@ ingredients_list = st.multiselect(
     max_selections=5
 )
 
-# 材料が選択された場合のみ処理を実行
-if ingredients_list:
-    ingredients_string = ''
-    for fruit_chosen in ingredients_list:
-        ingredients_string += fruit_chosen + " "
-        
-        # --- ここからが移動してきたコード ---
-        # ユーザーが選択したフルーツに基づいてAPIを呼び出す（まだ固定値）
-        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
-        # 取得したデータをデータフレームとして表示
-        sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
+for fruit_chosen in ingredients_list:
+    ingredients_string += fruit_chosen + " "
+    
+    # 見出しを追加
+    st.subheader(fruit_chosen + ' Nutrition Information')
+    
+    # fruit_chosen変数を使ってURLを動的に生成
+    smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + fruit_chosen)
+    
+    # データを表示
+    sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
         # --- ここまで ---
 
     ingredients_string = ingredients_string.strip()
