@@ -57,3 +57,11 @@ if ingredients_list:
 else:
     # 材料が選択されていない場合に表示するメッセージ
     st.write("Please choose your ingredients to make a smoothie!")
+
+
+import requests
+smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
+st.text(smoothiefroot_response)
+
+
+
